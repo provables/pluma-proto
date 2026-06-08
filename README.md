@@ -1,1 +1,1 @@
-# oeis-lt-proto
+# pluma-proto

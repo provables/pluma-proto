@@ -5,31 +5,31 @@ import SQLite
 
 open Lean Elab
 
-structure OEISContext where
+structure PlumaContext where
   env : Environment
   ctx : Core.Context
   state : Core.State
   db : SQLite
 
-inductive OEISError where
+inductive PlumaError where
   | JSONDecodeError (e : String)
   | UserError (e : String)
   | IOError (e : IO.Error)
 
-instance : Repr OEISError where
+instance : Repr PlumaError where
   reprPrec
     | .JSONDecodeError e, _ => f!"JSONDecodeError: {e}"
     | .UserError e, _ => f!"UserError: {e}"
     | .IOError e, _ => f!"IOError: {e}"
 
-abbrev OEISM := ReaderT OEISContext (EIO OEISError)
+abbrev PlumaM := ReaderT PlumaContext (EIO PlumaError)
 
-instance : MonadLift IO OEISM where
-  monadLift o := IO.toEIO OEISError.IOError o
+instance : MonadLift IO PlumaM where
+  monadLift o := IO.toEIO PlumaError.IOError o
 
-def f : OEISM Nat := do
+def f : PlumaM Nat := do
   IO.println ""
-  throw <| OEISError.UserError ""
+  throw <| PlumaError.UserError ""
   return 1
   --throw <| IO.Error.userError ""
 
@@ -37,13 +37,13 @@ def f : OEISM Nat := do
 -- make OEISM in EIO MyError)
 
 abbrev PluginFunction := Σ input : Type, Σ _ : FromJson input, Σ output : Type, Σ _ : ToJson output,
-  input → OEISM output
+  input → PlumaM output
 
 structure Plugin : Type where
   cmd : String
-  function : Json → OEISM Json
+  function : Json → PlumaM Json
 
-def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → OEISM b)
+def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → PlumaM b)
     : Plugin :=
   let g (x : Json) := do
     let .ok (obj : a) := FromJson.fromJson? x

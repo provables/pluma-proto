@@ -1,10 +1,11 @@
-name = "oeis-lt-proto"
+name = "pluma-proto"
 version = "0.1.0"
-defaultTargets = ["OEISLtProto"]
+defaultTargets = ["PlumaProto"]
 
 [[require]]
 name = "leansqlite"
 git = "https://github.com/leanprover/leansqlite.git"
+rev = "v4.30.0"
 
 [[lean_lib]]
-name = "OEISLtProto"
+name = "PlumaProto"
