@@ -53,6 +53,9 @@ structure Plugin : Type where
   cmd : String
   function : Json → PlumaM Json
 
+instance : CoeFun Plugin (fun _ => Json → PlumaM Json) where
+  coe p := p.function
+
 def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → PlumaM b)
     : Plugin :=
   let g (x : Json) := do
