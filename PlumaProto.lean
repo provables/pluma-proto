@@ -62,3 +62,25 @@ def mkPlugin {a b : Type} [FromJson a] [ToJson b] (cmd : String) (f : a → Plum
   ⟨cmd, g⟩
 
 -- Client provides a value `plugin : Plugin`.
+
+/--
+Attribute to derive FromJson, ToJson, and coercions for a type.
+-/
+syntax (name := plumaData) "plumaData" : attr
+
+@[inherit_doc plumaData]
+initialize Lean.registerBuiltinAttribute {
+  name := `plumaData
+  descr := "attribute for Pluma"
+  add := fun declName stx kind => do
+    let x ← liftCommandElabM do
+      if not (← Lean.Elab.Deriving.FromToJson.mkToJsonInstanceHandler #[declName]) then
+        throwError s!"failed to derive ToJson instance for {declName}"
+      if not (← Lean.Elab.Deriving.FromToJson.mkFromJsonInstanceHandler #[declName]) then
+        throwError s!"failed to derive FromJson instance for {declName}"
+      elabCommand (← `(command|def $(mkIdent `goo) : Nat := 34))
+      elabCommand (← `(command|
+        instance : Coe $(mkIdent declName) Lean.Json where
+          coe := Lean.ToJson.toJson
+      ))
+}
