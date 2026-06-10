@@ -3,7 +3,7 @@
 import Lean
 import SQLite
 
-open Lean Elab
+open Lean Elab Command
 
 structure PlumaContext where
   env : Environment
@@ -26,6 +26,16 @@ abbrev PlumaM := ReaderT PlumaContext (EIO PlumaError)
 
 instance : MonadLift IO PlumaM where
   monadLift o := IO.toEIO PlumaError.IOError o
+
+-- def toIO {α : Type}
+--       (x : CommandElabM α) (state : GenSeqContext) (throwOnError : Bool := true) : IO α := do
+--     Prod.fst <$> (Core.CoreM.toIO · state.ctx state.state) (liftCommandElabM x throwOnError)
+
+instance : MonadLift CommandElabM PlumaM where
+  monadLift o := do
+    Prod.fst <$> Core.CoreM.toIO
+      (liftCommandElabM o (throwOnError := false))
+      (← read).ctx (← read).state
 
 def f : PlumaM Nat := do
   IO.println ""
