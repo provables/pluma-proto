@@ -10,6 +10,7 @@ structure PlumaContext where
   ctx : Core.Context
   state : Core.State
   db : SQLite
+  liftCommandThrowError : Bool
 
 inductive PlumaError where
   | JSONDecodeError (e : String)
@@ -34,7 +35,7 @@ instance : MonadLift IO PlumaM where
 instance : MonadLift CommandElabM PlumaM where
   monadLift o := do
     Prod.fst <$> Core.CoreM.toIO
-      (liftCommandElabM o (throwOnError := false))
+      (liftCommandElabM o (throwOnError := (← read).liftCommandThrowError))
       (← read).ctx (← read).state
 
 def f : PlumaM Nat := do
