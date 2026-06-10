@@ -81,7 +81,6 @@ initialize Lean.registerBuiltinAttribute {
         throwError s!"failed to derive ToJson instance for {declName}"
       if not (← Lean.Elab.Deriving.FromToJson.mkFromJsonInstanceHandler #[declName]) then
         throwError s!"failed to derive FromJson instance for {declName}"
-      elabCommand (← `(command|def $(mkIdent `goo) : Nat := 34))
       elabCommand (← `(command|
         instance : Coe $(mkIdent declName) Lean.Json where
           coe := Lean.ToJson.toJson
